@@ -166,6 +166,7 @@ def get_task(task_id: int):
 @app.post(
     "/tasks",
     response_model = Task,
+    status_code=status.HTTP_201_CREATED,
     summary = "Create a new task",
     tags = ["Tasks"]
 )
@@ -182,17 +183,15 @@ def create_task(task_input : TaskCreate):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("INSERT INTO tasks (title, done) VALUES (?, ?)", (title_clean, 0))
-    conn.commit()
-    new_id = cursor.lastrowid
-    conn.close()
+    cursor.execute("INSERT INTO tasks (title, done) VALUES (%s, %s) RETURNING id, title, done", (title_clean, False))
 
-    return{
-        "id" : new_id,
-        "title":title_clean,
-        "done": False
-    }
+    new_row = cursor.fetchone()
+    conn.commit()
+    conn.close()
+    return new_row
     
+# Stage 3 : Update and Delete
+
 # Stage 3 : Update and Delete
 
 @app.put("/tasks/{task_id}", response_model=Task, summary="Update a task", tags=["Tasks"])
@@ -201,7 +200,8 @@ def update_task(task_id:int, task_update:TaskUpdate):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id, title, done FROM tasks WHERE id = ?", (task_id,))
+    # Use %s placeholder
+    cursor.execute("SELECT id, title, done FROM tasks WHERE id = %s", (task_id,))
     row = cursor.fetchone()
 
     if row is None:
@@ -226,9 +226,10 @@ def update_task(task_id:int, task_update:TaskUpdate):
 
     new_done = bool(row["done"])
     if task_update.done is not None:
-        new_done = 1 if task_update.done else 0
+        new_done = task_update.done  # Use native boolean directly for Postgres
 
-    cursor.execute("UPDATE tasks SET title = ?, done = ? WHERE id = ?", 
+    # Use %s placeholders
+    cursor.execute("UPDATE tasks SET title = %s, done = %s WHERE id = %s", 
         (new_title, new_done, task_id)
     )
     conn.commit()
@@ -237,8 +238,9 @@ def update_task(task_id:int, task_update:TaskUpdate):
     return {
         "id" : task_id,
         "title": new_title,
-        "done": bool(new_done)
+        "done": new_done
     }
+
     
 @app.delete(
     "/tasks/{task_id}",
@@ -250,8 +252,9 @@ def delete_task(task_id: int):
     """Deletes a task by ID from the database. Returns 204 No Content on success."""
     conn = get_db_connection()
     cursor = conn.cursor()
-    # 1. Check if the task exists
-    cursor.execute("SELECT id FROM tasks WHERE id = ?", (task_id,))
+    
+    # Check if the task exists using %s
+    cursor.execute("SELECT id FROM tasks WHERE id = %s", (task_id,))
     row = cursor.fetchone()
     if row is None:
         conn.close()
@@ -260,7 +263,8 @@ def delete_task(task_id: int):
             detail="Task not found"
         )
 
-    cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+    # Delete the task using %s
+    cursor.execute("DELETE FROM tasks WHERE id = %s", (task_id,))
     conn.commit()
     conn.close()
     return None
