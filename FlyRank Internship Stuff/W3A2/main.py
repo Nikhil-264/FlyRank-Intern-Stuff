@@ -118,11 +118,11 @@ def get_tasks(
     params = []
     
     if done is not None:
-        query += " AND done = ?"
-        params.append(1 if done else 0)
+        query += " AND done = %s"
+        params.append(done)
         
     if search is not None:
-        query += " AND title LIKE ?"
+        query += " AND title LIKE %s"
         params.append(f"%{search}%")
         
     cursor.execute(query, params)
@@ -147,7 +147,7 @@ def get_task(task_id: int):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id, title, done FROM tasks WHERE id = ?", (task_id,))
+    cursor.execute("SELECT id, title, done FROM tasks WHERE id = %s", (task_id,))
     row = cursor.fetchone()
     conn.close()
 
