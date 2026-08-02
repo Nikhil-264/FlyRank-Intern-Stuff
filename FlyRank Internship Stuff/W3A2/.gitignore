@@ -1,0 +1,19 @@
+# Database
+W3A2/tasks.db
+tasks.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+.env
+
+# IDE / System
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
