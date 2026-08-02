@@ -1,1 +1,0 @@
-// write a C code for take a number as input write all permutations possible using its digits and ask user to give a number and print th enth permutation of that number
