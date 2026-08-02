@@ -1,0 +1,7 @@
+To decipher it the recipient has to work out the
+column lengths by dividing the message length by the key
+length. Then he can write the message out in columns
+again then re-order the columns by reforming the key word.
+Columnar transposition continued to be used for serious purposes as
+a component of more complex ciphers at least into the
+1950s.

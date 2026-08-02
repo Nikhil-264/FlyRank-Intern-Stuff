@@ -1,0 +1,6 @@
+a = input("Number: ")
+a = int(a)
+b = input("Number: ")
+b = int(b)
+print(a+b)
+print(a%b)

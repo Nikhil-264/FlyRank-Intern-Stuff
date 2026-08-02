@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: dip-coater-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: dip_coater
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dip-coater-backend
+    restart: always
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password123@db:5432/dip_coater
+      - SECRET_KEY=38e3e4a42b10a48b9415c8ebbe6871a2e38c928424823abf60e1d0f507b5a191
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
+      - MOCK_DEVICE_URL=ws://mock-device:8001/ws
+    depends_on:
+      - db
+
+  mock-device:
+    build:
+      context: ./mock-device
+      dockerfile: Dockerfile
+    container_name: dip-coater-mock-device
+    restart: always
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./mock-device:/app
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dip-coater-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - VITE_WS_URL=ws://localhost:8000/ws
+      - CHOKIDAR_USEPOLLING=true
+
+volumes:
+  postgres_data:

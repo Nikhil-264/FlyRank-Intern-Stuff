@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width= , initial-scale=1.0">
+        <title>DOM Learning</title>
+        <style>
+                .bg-black{
+                        background-color: #212121;
+                        color: #fff;
+                }
+        </style>
+</head>
+<body class="bg-black">
+        <div class="parent">
+                <div class="day">Monday</div>
+                <div class="day">TuesDay</div>
+                <div class="day">Wednesday</div>
+                <div class="day">Thursday</div>
+        </div>
+</body>
+<script>
+        // <!-- const parent = document.querySelector('.parent')
+        // console.log(parent);
+        // console.log(parent.children[2].innerHTML);
+        // for (let i = 0; i < parent.children.length; i++) {
+        //         console.log(parent.children[i].innerHTML);
+        // } -->
+
+        // Creating a new element
+        // const div = document.createElement('div');
+        // console.log(div);
+        // div.className = "main";
+        // div.id = Math.round(Math.random() * 10 + 1);
+        // div.setAttribute("title", "generated title")
+        // div.style.backgroundColor = "green"
+        // div.style.padding = "12px"
+        function addLanguage(langName){
+                const li = document.createElement('li');
+                li.innerHTML = `${langName}`;
+                document.querySelector('.language')
+                .appendChild(li);
+        }
+        addLanguage('python');
+        addLanguage('typeScript');
+
+        function addOptiLanguage(langName){
+                const li = document.createElement('li');
+                li.appendChild(document.createTextNode(langName));
+                document.querySelector('.language').appendChild(li);    
+        }
+        addOptiLanguage('java');
+</script>
+</html> 

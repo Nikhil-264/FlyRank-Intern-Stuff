@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+</head>
+<body>
+        <h1>Nikhil</h1>
+        <button id="stop">Stop</button>
+</body>
+<script>
+        //setTimeout(function(){
+        //        console.log('Hello');
+        //        document.querySelector('h1').style.color = 'blue';
+        //}, 2000);//This will do task one time
+        const demofunction = function(){
+                console.log('Hello');
+                document.querySelector('h1').innerHTML = 'blue';
+        }
+
+        const changeMe = setTimeout(demofunction, 2000);//This will do task one time
+        // this is ensuring that the it will be run after given time interval
+        document.querySelector('#stop').addEventListener('click', function(){
+                clearTimeout(changeMe);
+                console.log('Stopped');
+        });
+</script>
+</html>
