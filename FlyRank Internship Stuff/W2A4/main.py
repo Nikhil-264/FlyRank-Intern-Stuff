@@ -2,7 +2,7 @@ import os
 from contextlib import asynccontextmanager
 from typing import Optional
 from dotenv import load_dotenv
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
@@ -106,4 +106,33 @@ def login(user_data : UserAuth):
             status_code = 500,
             content = {"error": str(e)}
         )
+
+
+@app.get("/public/info")
+def public_info():
+    return {"message": "Welcome stranger! This info is public."}
+
+
+@app.get("/protected/profile")
+def protected_profile(request: Request):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return JSONResponse(
+            status_code=401,
+            content={"error": "Access token required"}
+        )
+
+    parts = auth_header.split(" ")
+    if len(parts) != 2 or parts[0].lower() != "bearer" or not parts[1].strip():
+        return JSONResponse(
+            status_code=401,
+            content={"error": "Access token required"}
+        )
+
+    token = parts[1].strip()
+    return {
+        "message": "Welcome! Token presented (unverified check)",
+        "token": token
+    }
+
 
