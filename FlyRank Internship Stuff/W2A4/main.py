@@ -130,9 +130,28 @@ def protected_profile(request: Request):
         )
 
     token = parts[1].strip()
-    return {
-        "message": "Welcome! Token presented (unverified check)",
-        "token": token
-    }
+
+    try:
+        # Verify the token with Supabase
+        response = supabase.auth.get_user(token)
+        user = response.user
+
+        # Return 200 with the user's safe metadata (id, email, created_at)
+        return {
+            "id": user.id,
+            "email": user.email,
+            "created_at": user.created_at
+        }
+    except AuthApiError as e:
+        # Return 401 if token is expired, tampered, or invalid
+        return JSONResponse(
+            status_code=401,
+            content={"error": "Invalid or expired token"}
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=401,
+            content={"error": "Invalid or expired token"}
+        )
 
 
