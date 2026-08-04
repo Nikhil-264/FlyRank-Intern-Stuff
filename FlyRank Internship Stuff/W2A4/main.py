@@ -1,8 +1,20 @@
 import os
 from contextlib import asynccontextmanager
+from typing import Optional
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, status
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
 from supabase import create_client, Client
+
+try:
+    from gotrue.errors import AuthApiError
+except ImportError:
+    try:
+        from supabase import AuthApiError
+    except ImportError:
+        AuthApiError = Exception
 
 # Load environment variables from .env file
 load_dotenv()
@@ -30,6 +42,68 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+class UserAuth(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+
 @app.get("/")
 def read_root():
     return {"message": "API is running. Connected to Supabase."}
+
+
+@app.post("/auth/signup")
+def signup(user_data:UserAuth):
+    # Validate missing fields
+    if not user_data.email or not user_data.password or not user_data.email.strip() or not user_data.password.strip():
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Email and password are required"}
+        )
+
+    try:
+        response = supabase.auth.sign_up({
+            "email":user_data.email,
+            "password":user_data.password
+        })
+        # Is signup is successful, return 201 with the user details
+        return JSONResponse(
+            status_code=201,
+            content = jsonable_encoder(response.user)
+        )
+    except AuthApiError as e:
+        return JSONResponse(
+            status_code = 500,
+            content = {"error" : str(e)}
+        )
+
+
+@app.post("/auth/login")
+def login(user_data : UserAuth):
+    # Validate missing fields
+    if not user_data.email or not user_data.password or not user_data.email.strip() or not user_data.password.strip():
+        return JSONResponse(
+            status_code=400,
+            content={"error" : "Email and password are required"}
+        )
+
+    try:
+        response = supabase.auth.sign_in_with_password({
+            "email" : user_data.email,
+            "password" : user_data.password
+        })
+        return {
+            'access_token': response.session.access_token,
+            'refresh_token': response.session.refresh_token
+        }
+    except AuthApiError as e:
+        # If supabase rejects credentials return 401
+        return JSONResponse(
+            status_code = 401,
+            content = {"error": "Invalid Login credentials"}
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code = 500,
+            content = {"error": str(e)}
+        )
+
