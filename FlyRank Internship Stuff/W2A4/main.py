@@ -2,9 +2,10 @@ import os
 from contextlib import asynccontextmanager
 from typing import Optional
 from dotenv import load_dotenv
-from fastapi import FastAPI, status, Request
+from fastapi import FastAPI, status, Request, Depends, HTTPException, Response
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel
 from supabase import create_client, Client
 
@@ -41,6 +42,51 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+# Custom exception handler to return errors in format {"error": "..."}
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": exc.detail}
+    )
+
+# Reusable guard dependency
+def get_current_user(request: Request):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        raise HTTPException(
+            status_code=401,
+            detail="Access token required"
+        )
+
+    parts = auth_header.split(" ")
+    if len(parts) != 2 or parts[0].lower() != "bearer" or not parts[1].strip():
+        raise HTTPException(
+            status_code=401,
+            detail="Access token required"
+        )
+
+    token = parts[1].strip()
+
+    try:
+        response = supabase.auth.get_user(token)
+        if not response.user:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid or expired token"
+            )
+        return response.user
+    except AuthApiError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token"
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token"
+        )
 
 class UserAuth(BaseModel):
     email: Optional[str] = None
@@ -108,50 +154,36 @@ def login(user_data : UserAuth):
         )
 
 
+@app.post("/auth/logout")
+def logout(current_user = Depends(get_current_user)):
+    try:
+        supabase.auth.sign_out()
+        return Response(status_code=204)
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e)}
+        )
+
+
 @app.get("/public/info")
 def public_info():
     return {"message": "Welcome stranger! This info is public."}
 
 
 @app.get("/protected/profile")
-def protected_profile(request: Request):
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        return JSONResponse(
-            status_code=401,
-            content={"error": "Access token required"}
-        )
+def protected_profile(current_user = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "created_at": current_user.created_at
+    }
 
-    parts = auth_header.split(" ")
-    if len(parts) != 2 or parts[0].lower() != "bearer" or not parts[1].strip():
-        return JSONResponse(
-            status_code=401,
-            content={"error": "Access token required"}
-        )
 
-    token = parts[1].strip()
-
-    try:
-        # Verify the token with Supabase
-        response = supabase.auth.get_user(token)
-        user = response.user
-
-        # Return 200 with the user's safe metadata (id, email, created_at)
-        return {
-            "id": user.id,
-            "email": user.email,
-            "created_at": user.created_at
-        }
-    except AuthApiError as e:
-        # Return 401 if token is expired, tampered, or invalid
-        return JSONResponse(
-            status_code=401,
-            content={"error": "Invalid or expired token"}
-        )
-    except Exception as e:
-        return JSONResponse(
-            status_code=401,
-            content={"error": "Invalid or expired token"}
-        )
-
+@app.get("/protected/dashboard")
+def protected_dashboard(current_user = Depends(get_current_user)):
+    return {
+        "message": "Welcome to the secret dashboard!",
+        "user_id": current_user.id
+    }
 
