@@ -5,5 +5,4 @@ __pycache__/
 
 # Scraper temporary caches and execution output
 cache/
-output/
 .pytest_cache/
