@@ -127,3 +127,52 @@ Web scraping must always be done responsibly. We should:
 
 ### Honest Limitation
 The crawler relies on a fixed HTML class structure (`product_pod`, `product_main`, etc.). If the target site updates its template layout, selectors will need to be re-mapped. Additionally, the catalogue traversal is currently scoped strictly to the first 3 pages and is not configured for generic site-wide crawling.
+
+---
+
+## 8. AI vs Me - Rematch Analysis
+
+### Scraper Prompt Used
+We prompted the assistant with the following requirements:
+> "Write a Python 3 web scraper to collect book data from the Books to Scrape sandbox (https://books.toscrape.com/catalogue/page-1.html).
+> - Crawl only the first 3 catalogue pages. Find the detail URLs dynamically by parsing the 'next' button on each page.
+> - Extract 8 raw fields for each book: title, product_url, price_text, availability_text, rating_text, description, source_page, and fetched_at. If description is missing, store None.
+> - Implement a local cache in the `cache/` directory. If the page is already cached on disk, read it instead of making a network request.
+> - Follow politeness rules: set a custom User-Agent (`FlyRankInternship-A9/1.0`), a timeout of 10s, and add a 500ms delay between server requests (do not delay cache hits).
+> - Normalize the price string (e.g., '£51.77' into float 51.77) and validate fields using a Pydantic schema (validating that the rating is one of One, Two, Three, Four, Five).
+> - Keep raw and normalized values side-by-side. Avoid duplicate books by using the absolute product_url as canonical ID.
+> - Route valid book records to `output/books.json` and schema/fetch validation errors to `output/errors.json` along with the validation error. Ensure the run is idempotent.
+> - Handle failures gracefully: if a request fails, retry once on timeouts or 5xx status codes, but skip immediately on 404 or 403. Wrap each book's parsing in a try/except block so one bad page doesn't crash the scraper.
+> - At the end of execution, output stats (start time, duration, pages fetched, cache hits, valid, invalid, failed pages) to `output/run-report.json`."
+
+### Checkpoint Comparison Results
+
+| Checkpoint | Hand-Built (`src/main.py`) | Quarantined AI (`ai-version/main.py`) | Result |
+| :--- | :--- | :--- | :--- |
+| Discover 60 Book URLs | Yes (60 unique URLs) | Yes (60 unique URLs) | Pass (Both) |
+| Idempotency check (double run) | Yes (exactly 60) | Yes (exactly 60) | Pass (Both) |
+| Survives injected fake URL | Yes (fails gracefully) | Yes (fails gracefully) | Pass (Both) |
+| Error partitioning | Yes (stored in `errors.json`) | Yes (stored in `errors.json`) | Pass (Both) |
+| Correct `price_gbp` type | Yes (float value) | Yes (float value) | Pass (Both) |
+
+### Three Concrete Differences
+
+1. **Date Validation in Pydantic Schema**:
+   - **Hand-Built**: Declares `fetched_at` as a Python `datetime` object, forcing strict type-checking of ISO timestamps.
+   - **AI Version**: Declares `fetched_at` as a simple string (`str`), which passes any text and lacks strict validation.
+2. **Retry Backoff Politeness**:
+   - **Hand-Built**: Uses exponential backoff with random jitter and parses the server's `Retry-After` header when available.
+   - **AI Version**: Uses a fixed 1-second delay between attempts and ignores the `Retry-After` header completely.
+3. **Observability and Exports**:
+   - **Hand-Built**: Integrates structured JSON logs to `output/scraper.log`, outputs a flat CSV in `output/books.csv`, and generates a premium dark-themed observability HTML dashboard in `output/dashboard.html`.
+   - **AI Version**: Only generates the basic required JSON output files, missing flat exports, logging structures, and dashboards.
+
+### AI Rematch Answers
+
+- **What did the AI do better?** 
+  The AI structured the scraper as a class (`AIScraper`), which encapsulates variables like `pages_fetched` and `cache_hits` inside instance properties rather than global state dictionaries, making the code cleaner to extend or run concurrently.
+- **What did the AI get wrong or silently skip?**
+  The AI skipped time-zone aware ISO-8601 validation for the `fetched_at` field and fell back to generating UTC strings manually, and did not implement structured logging.
+- **What did your prompt forget to say?**
+  The prompt did not specify parsing the `Retry-After` HTTP headers or calculating exponential backoff wait times mathematically, nor did it ask for CSV format exports and observability dashboards.
+
