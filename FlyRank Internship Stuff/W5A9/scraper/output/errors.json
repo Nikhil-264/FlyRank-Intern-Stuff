@@ -1,7 +1,7 @@
 [
   {
     "product_url": "https://books.toscrape.com/catalogue/non_existent_book_9999/index.html",
-    "error_reason": "Failed to fetch page https://books.toscrape.com/catalogue/non_existent_book_9999/index.html after 2 attempts.",
-    "timestamp": "2026-08-09T06:10:57.138512+00:00"
+    "error_reason": "Failed to fetch page https://books.toscrape.com/catalogue/non_existent_book_9999/index.html after 3 attempts.",
+    "timestamp": "2026-08-09T06:16:47.566854+00:00"
   }
 ]

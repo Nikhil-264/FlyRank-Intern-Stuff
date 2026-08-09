@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polite Scraper Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+        }
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .timestamp {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.03);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .card-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .text-green { color: var(--accent-green); }
+        .text-blue { color: var(--accent-blue); }
+        .text-red { color: var(--accent-red); }
+        .text-purple { color: var(--accent-purple); }
+        
+        .section-title {
+            font-size: 1.4rem;
+            margin-bottom: 1.25rem;
+            font-weight: 600;
+        }
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        @media(max-width: 768px) {
+            .two-col { grid-template-columns: 1fr; }
+        }
+        .table-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th {
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+        }
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 250px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .badge-success { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .badge-fail { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>The Polite Scraper Observability</h1>
+                <p style="color: var(--text-muted); margin-top: 0.25rem;">A real-time health and scraping metrics reporter.</p>
+            </div>
+            <div class="timestamp">
+                Last Scraped: 2026-08-09T06:16:47.043736+00:00
+            </div>
+        </header>
+
+        <!-- Main Stats Grid -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">Scrape Health</div>
+                <div class="card-value text-green">98.4%</div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">60 succeeded / 1 failed</p>
+            </div>
+            <div class="card">
+                <div class="card-title">Execution Duration</div>
+                <div class="card-value text-blue">1.9s</div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">0 network / 63 cache hits</p>
+            </div>
+            <div class="card">
+                <div class="card-title">Average Book Price</div>
+                <div class="card-value text-purple">£35.00</div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Range: £12.84 - £57.31</p>
+            </div>
+            <div class="card">
+                <div class="card-title">Change Detection</div>
+                <div class="card-value text-blue">+0 / ~0</div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Unchanged: 60 | Gone: 0</p>
+            </div>
+        </div>
+
+        <div class="two-col">
+            <!-- Valid Scraped Books Summary -->
+            <div>
+                <h2 class="section-title">Latest Scraped Books</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Price</th>
+                                <th>Rating</th>
+                                <th>Availability</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td title="A Light in the Attic">A Light in the Attic</td><td>£51.77</td><td>Three</td><td>In stock (22 available)</td></tr><tr><td title="Tipping the Velvet">Tipping the Velvet</td><td>£53.74</td><td>One</td><td>In stock (20 available)</td></tr><tr><td title="Soumission">Soumission</td><td>£50.10</td><td>One</td><td>In stock (20 available)</td></tr><tr><td title="Sharp Objects">Sharp Objects</td><td>£47.82</td><td>Four</td><td>In stock (20 available)</td></tr><tr><td title="Sapiens: A Brief History of Humankind">Sapiens: A Brief History of Humankind</td><td>£54.23</td><td>Five</td><td>In stock (20 available)</td></tr><tr><td title="The Requiem Red">The Requiem Red</td><td>£22.65</td><td>One</td><td>In stock (19 available)</td></tr><tr><td title="The Dirty Little Secrets of Getting Your Dream Job">The Dirty Little Secrets of Getting Your Dream Job</td><td>£33.34</td><td>Four</td><td>In stock (19 available)</td></tr><tr><td title="The Coming Woman: A Novel Based on the Life of the Infamous Feminist, Victoria Woodhull">The Coming Woman: A Novel Based on the Life of the Infamous Feminist, Victoria Woodhull</td><td>£17.93</td><td>Three</td><td>In stock (19 available)</td></tr><tr><td title="The Boys in the Boat: Nine Americans and Their Epic Quest for Gold at the 1936 Berlin Olympics">The Boys in the Boat: Nine Americans and Their Epic Quest for Gold at the 1936 Berlin Olympics</td><td>£22.60</td><td>Four</td><td>In stock (19 available)</td></tr><tr><td title="The Black Maria">The Black Maria</td><td>£52.15</td><td>One</td><td>In stock (19 available)</td></tr><tr><td title="Starving Hearts (Triangular Trade Trilogy, #1)">Starving Hearts (Triangular Trade Trilogy, #1)</td><td>£13.99</td><td>Two</td><td>In stock (19 available)</td></tr><tr><td title="Shakespeare's Sonnets">Shakespeare's Sonnets</td><td>£20.66</td><td>Four</td><td>In stock (19 available)</td></tr><tr><td title="Set Me Free">Set Me Free</td><td>£17.46</td><td>Five</td><td>In stock (19 available)</td></tr><tr><td title="Scott Pilgrim's Precious Little Life (Scott Pilgrim #1)">Scott Pilgrim's Precious Little Life (Scott Pilgrim #1)</td><td>£52.29</td><td>Five</td><td>In stock (19 available)</td></tr><tr><td title="Rip it Up and Start Again">Rip it Up and Start Again</td><td>£35.02</td><td>Five</td><td>In stock (19 available)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Failures and Logs -->
+            <div>
+                <h2 class="section-title">Encountered Failures / Skips</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Target URL</th>
+                                <th>Reason for Skip</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><a href="https://books.toscrape.com/catalogue/non_existent_book_9999/index.html" target="_blank" style="color: var(--accent-blue); text-decoration: none;">non_existent_book_9999</a></td><td title="Failed to fetch page https://books.toscrape.com/catalogue/non_existent_book_9999/index.html after 3 attempts.">Failed to fetch page https://books.toscr...</td><td><span class="badge badge-fail">Failed</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
