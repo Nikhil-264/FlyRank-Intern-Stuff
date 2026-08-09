@@ -1,0 +1,9 @@
+# Python environment
+.venv/
+__pycache__/
+*.pyc
+
+# Scraper temporary caches and execution output
+cache/
+output/
+.pytest_cache/
